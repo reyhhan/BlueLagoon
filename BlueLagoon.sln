@@ -1,9 +1,15 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
-VisualStudioVersion = 17.12.35521.163 d17.12
+VisualStudioVersion = 17.12.35521.163
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BlueLagoon.Web", "BlueLagoon.Web\BlueLagoon.Web.csproj", "{E7C08AD5-F4F3-4137-9429-AD89F3BA08E2}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BlueLagoon.Domain", "BlueLagoon.Domain\BlueLagoon.Domain.csproj", "{6DB8F90E-F6D8-4391-B2EA-6D4780E28EDB}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BlueLagoon.Application", "BlueLagoon.Application\BlueLagoon.Application.csproj", "{47B5BDD4-28A4-44A9-8E09-0998690FA058}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BlueLagoon.Infrastructure", "BlueLagoon.Infrastructure\BlueLagoon.Infrastructure.csproj", "{D59298E5-0FBC-4459-8839-155436D7BF55}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -15,6 +21,18 @@ Global
 		{E7C08AD5-F4F3-4137-9429-AD89F3BA08E2}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{E7C08AD5-F4F3-4137-9429-AD89F3BA08E2}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{E7C08AD5-F4F3-4137-9429-AD89F3BA08E2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6DB8F90E-F6D8-4391-B2EA-6D4780E28EDB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6DB8F90E-F6D8-4391-B2EA-6D4780E28EDB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6DB8F90E-F6D8-4391-B2EA-6D4780E28EDB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6DB8F90E-F6D8-4391-B2EA-6D4780E28EDB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{47B5BDD4-28A4-44A9-8E09-0998690FA058}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{47B5BDD4-28A4-44A9-8E09-0998690FA058}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{47B5BDD4-28A4-44A9-8E09-0998690FA058}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{47B5BDD4-28A4-44A9-8E09-0998690FA058}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D59298E5-0FBC-4459-8839-155436D7BF55}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D59298E5-0FBC-4459-8839-155436D7BF55}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D59298E5-0FBC-4459-8839-155436D7BF55}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D59298E5-0FBC-4459-8839-155436D7BF55}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
