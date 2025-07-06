@@ -34,7 +34,7 @@ namespace BlueLagoon.Web.Controllers
                 _context.Villas.Add(obj);
                 _context.SaveChanges();
                 TempData["success"] = "The villa has been successfully created!";
-                return RedirectToAction("Index", "Villa");
+                return RedirectToAction(nameof(Index));
             }
             TempData["error"] = "The villa could not be created!";
             return View();
@@ -44,7 +44,7 @@ namespace BlueLagoon.Web.Controllers
         public IActionResult Update(int villaId)
         {
             Villa? obj = _context.Villas.FirstOrDefault(u => u.Id == villaId);
-            if (obj == null)
+            if (obj is null)
             {
                 return RedirectToAction("Error", "Home");       
             }
@@ -60,7 +60,7 @@ namespace BlueLagoon.Web.Controllers
                 _context.Villas.Update(obj);
                 _context.SaveChanges();
                 TempData["success"] = "The villa has been successfully updated!";
-                return RedirectToAction("Index", "Villa");
+                return RedirectToAction(nameof(Index));
             }
             TempData["error"] = "The villa could not be updated!";
             return View();
@@ -72,12 +72,12 @@ namespace BlueLagoon.Web.Controllers
             if (villaId > 0)
             {
                 Villa? obj = _context.Villas.Find(villaId);
-                if (obj != null) 
+                if (obj is not null) 
                 {
                     _context.Villas.Remove(obj);
                     _context.SaveChanges();
                     TempData["success"] = "The villa has been successfully deleted!";
-                    return RedirectToAction("Index", "Villa");
+                    return RedirectToAction(nameof(Index));
                 }
                 TempData["error"] = "The villa could not be deleted!";
             }

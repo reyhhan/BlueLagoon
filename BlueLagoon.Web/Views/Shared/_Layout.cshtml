@@ -15,7 +15,7 @@
     <header>
         <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light border-bottom box-shadow mb-3">
             <div class="container-fluid">
-                <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">BlueLagoon.Web</a>
+                <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index"><img src="./images/resort.png" style="width: 35px" alt="Resort logo" /></a>
                 <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
                 aria-expanded="false" aria-label="Toggle navigation">
                     <span class="navbar-toggler-icon"></span>
@@ -30,6 +30,9 @@
                         </li>
                         <li class="nav-item">
                             <a class="nav-link" asp-area="" asp-controller="Villa" asp-action="Index">Villa</a>
+                        </li
+                         <li class="nav-item">
+                            <a class="nav-link" asp-area="" asp-controller="VillaSuite" asp-action="Index">Villa Suite</a>
                         </li>
                     </ul>
                 </div>
@@ -38,29 +41,14 @@
     </header>
     <div class="container">
         <main role="main" class="pb-3">
-            @if (TempData["error"] != null)
-            {
-                <script src="~/lib/jquery/dist/jquery.min.js"></script>
-                <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js" integrity="sha512-VEd+nq25CkR676O+pLBnDW09R7VQX9Mdiij052gVCp5yVH3jGtH70Ho/UUv4mJDsEdTvqRCFZg0NKGiojGnUCw==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>               
-                <script type="text/javascript">
-                    toastr.error('@TempData["error"]');
-                </script>
-            }
-            @if (TempData["success"] != null)
-            {
-                <script src="~/lib/jquery/dist/jquery.min.js"></script>
-                <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js" integrity="sha512-VEd+nq25CkR676O+pLBnDW09R7VQX9Mdiij052gVCp5yVH3jGtH70Ho/UUv4mJDsEdTvqRCFZg0NKGiojGnUCw==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-                <script type="text/javascript">
-                    toastr.success('@TempData["success"]');
-                </script>
-            }
+           <partial name="_Notification"></partial>
             @RenderBody()
         </main>
     </div>
 
     <footer class="border-top footer text-muted">
         <div class="container">
-            &copy; 2025 - BlueLagoon.Web - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
+            &copy; 2025 - BlueLagoon by SF
         </div>
     </footer>
     <script src="~/lib/jquery/dist/jquery.min.js"></script>

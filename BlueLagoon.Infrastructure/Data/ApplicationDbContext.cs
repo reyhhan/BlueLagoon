@@ -11,7 +11,7 @@ namespace BlueLagoon.Infrastructure.Data
         }
         //Create villa table
         public DbSet<Villa> Villas { get; set; }
-
+        public DbSet<VillaSuite> VillaSuites { get; set; }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             _ = modelBuilder.Entity<Villa>().HasData(
@@ -45,6 +45,55 @@ namespace BlueLagoon.Infrastructure.Data
                     Price = 80000,
                     Sqft = 1050
                 });
+
+            modelBuilder.Entity<VillaSuite>().HasData(
+                new VillaSuite
+                {
+                    VillaSuitId = 101,
+                    VillaId = 1,
+                },
+                new VillaSuite
+                {
+                    VillaSuitId = 102,
+                    VillaId = 1,
+                },
+                new VillaSuite
+                {
+                    VillaSuitId = 103,
+                    VillaId = 1,
+                },
+                new VillaSuite
+                {
+                    VillaSuitId = 201,
+                    VillaId = 2,
+                },
+                new VillaSuite
+                {
+                    VillaSuitId = 202,
+                    VillaId = 2,
+                },
+                new VillaSuite
+                {
+                    VillaSuitId = 203,
+                    VillaId = 2,
+                },
+                new VillaSuite
+                {
+                    VillaSuitId = 301,
+                    VillaId = 3,
+                },
+                new VillaSuite
+                {
+                    VillaSuitId = 302,
+                    VillaId = 3,
+                },
+                new VillaSuite
+                {
+                    VillaSuitId = 303,
+                    VillaId = 3,
+                }
+            );
+            
         }
     }
 }
