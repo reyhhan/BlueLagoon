@@ -20,7 +20,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\BlueLagoon.Application\BlueLagoon.Application.csproj" />
-    <ProjectReference Include="..\BlueLagoon.Domain\BlueLagoon.Domain.csproj" />
   </ItemGroup>
 
 </Project>

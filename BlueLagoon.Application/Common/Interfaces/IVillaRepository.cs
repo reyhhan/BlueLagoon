@@ -8,14 +8,9 @@ using System.Threading.Tasks;
 
 namespace BlueLagoon.Application.Common.Interfaces
 {
-    public interface IVillaRepository
+    public interface IVillaRepository : IRepository<Villa>
     {
-        IEnumerable<Villa> GetAll(Expression<Func<Villa,bool>>? filter =null, string? includeProperties = null);
-        Villa Get(Expression<Func<Villa, bool>> filter, string? includeProperties = null);
-
-        void Add(Villa villa);
         void Update(Villa villa);
-        void Delete(int id);
         void Save();
     }
 }
