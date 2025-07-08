@@ -69,7 +69,7 @@ namespace BlueLagoon.Web.Controllers
 
             if (obj is null)
             {
-                return RedirectToAction("Error", "Home");       
+                return View(obj);    
             }
             obj.VillaList = _context.Villas.Select(u => new SelectListItem
             {
@@ -131,7 +131,7 @@ namespace BlueLagoon.Web.Controllers
             }
             
             TempData["error"] = "The suite could not be deleted!"; 
-            return View();
+            return View(villaSuiteVM);
         }
 
     }

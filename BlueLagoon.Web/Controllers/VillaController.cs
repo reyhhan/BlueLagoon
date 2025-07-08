@@ -63,7 +63,7 @@ namespace BlueLagoon.Web.Controllers
                 return RedirectToAction(nameof(Index));
             }
             TempData["error"] = "The villa could not be updated!";
-            return View();
+            return View(obj);
         }
        
     
