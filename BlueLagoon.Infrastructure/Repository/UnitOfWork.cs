@@ -18,6 +18,10 @@ namespace BlueLagoon.Infrastructure.Repository
             Villa = new VillaRepository(_db);
         }
 
+        public void Save()
+        {
+            _db.SaveChanges();
+        }
     }
 
 }

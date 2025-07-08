@@ -7,15 +7,14 @@ namespace BlueLagoon.Web.Controllers
 {
     public class VillaController : Controller
     {
-        //private readonly ApplicationDbContext _context;
-        private readonly IVillaRepository _villaRepository;
-        public VillaController(IVillaRepository villaRepository)
+        private readonly IUnitOfWork _unitOfWork;
+        public VillaController(IUnitOfWork unitOfWork)
         {
-            _villaRepository = villaRepository;
+            _unitOfWork = unitOfWork;
         }
         public IActionResult Index()
         {
-            var villaList = _villaRepository.GetAll();
+            var villaList = _unitOfWork.Villa.GetAll();
             return View(villaList);
         }
 
@@ -33,8 +32,8 @@ namespace BlueLagoon.Web.Controllers
             }
             if (ModelState.IsValid)
             {
-                _villaRepository.Add(obj);
-                _villaRepository.Save();
+                _unitOfWork.Villa.Add(obj);
+                _unitOfWork.Save();
                 TempData["success"] = "The villa has been successfully created!";
                 return RedirectToAction(nameof(Index));
             }
@@ -45,7 +44,7 @@ namespace BlueLagoon.Web.Controllers
 
         public IActionResult Update(int villaId)
         {
-            Villa? obj = _villaRepository.Get(u => u.Id == villaId);
+            Villa? obj = _unitOfWork.Villa.Get(u => u.Id == villaId);
             if (obj is null)
             {
                 return RedirectToAction("Error", "Home");       
@@ -59,8 +58,8 @@ namespace BlueLagoon.Web.Controllers
         {           
             if (ModelState.IsValid && obj.Id > 0)
             {
-                _villaRepository.Update(obj);
-                _villaRepository.Save();
+                _unitOfWork.Villa.Update(obj);
+                _unitOfWork.Save();
                 TempData["success"] = "The villa has been successfully updated!";
                 return RedirectToAction(nameof(Index));
             }
@@ -73,11 +72,11 @@ namespace BlueLagoon.Web.Controllers
         {      
             if (villaId > 0)
             {
-                Villa? obj = _villaRepository.Get(u=>u.Id== villaId);
+                Villa? obj = _unitOfWork.Villa.Get(u=>u.Id== villaId);
                 if (obj is not null) 
                 {
-                    _villaRepository.Delete(obj);
-                    _villaRepository.Save();
+                    _unitOfWork.Villa.Delete(obj);
+                    _unitOfWork.Save();
                     TempData["success"] = "The villa has been successfully deleted!";
                     return RedirectToAction(nameof(Index));
                 }
