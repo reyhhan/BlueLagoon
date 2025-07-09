@@ -19,11 +19,6 @@ namespace BlueLagoon.Infrastructure.Repository
             _context = context;
         }
 
-        public void Save()
-        {
-            _context.SaveChanges();
-        }
-
         public void Update(Villa villa)
         {
            _context.Update(villa);

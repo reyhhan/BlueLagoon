@@ -1,10 +1,5 @@
 ﻿using BlueLagoon.Application.Common.Interfaces;
 using BlueLagoon.Infrastructure.Data;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace BlueLagoon.Infrastructure.Repository
 {
@@ -12,10 +7,15 @@ namespace BlueLagoon.Infrastructure.Repository
     {
         private readonly ApplicationDbContext _db;
         public IVillaRepository Villa { get; private set; }
+        public IVillaSuiteRepository VillaSuite { get; private set; }
+        public IAmenityRepository Amenity { get; private set; } 
+
         public UnitOfWork(ApplicationDbContext db)
         {
             _db = db;
             Villa = new VillaRepository(_db);
+            VillaSuite = new VillaSuiteRepository(_db);
+            Amenity = new AmenityRepository(_db);
         }
 
         public void Save()

@@ -2,14 +2,13 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Linq.Expressions;
 using System.Text;
 using System.Threading.Tasks;
 
 namespace BlueLagoon.Application.Common.Interfaces
 {
-    public interface IVillaRepository : IRepository<Villa>
+    public interface IAmenityRepository : IRepository<Amenity>
     {
-        void Update(Villa villa);
+        void Update(Amenity amenity);
     }
 }

@@ -8,9 +8,11 @@ namespace BlueLagoon.Web.Controllers
     public class VillaController : Controller
     {
         private readonly IUnitOfWork _unitOfWork;
-        public VillaController(IUnitOfWork unitOfWork)
+        private readonly IWebHostEnvironment _webHostEnvironment;
+        public VillaController(IUnitOfWork unitOfWork, IWebHostEnvironment webHostEnvironment)
         {
             _unitOfWork = unitOfWork;
+            _webHostEnvironment = webHostEnvironment;
         }
         public IActionResult Index()
         {
@@ -32,6 +34,20 @@ namespace BlueLagoon.Web.Controllers
             }
             if (ModelState.IsValid)
             {
+                if (obj.Image != null)
+                {
+                    string fileName = Guid.NewGuid().ToString() + Path.GetExtension(obj.Image.FileName);
+                    string path = Path.Combine(_webHostEnvironment.WebRootPath, @"images\VillaImages");
+                    using var filestream = new FileStream(Path.Combine(path, fileName), FileMode.Create);
+                    
+                    obj.Image.CopyTo(filestream);
+                    obj.ImageUrl = @"\images\VillaImages\" + fileName;
+                    
+                }
+                else
+                {
+                    obj.ImageUrl = "https://placehold.co/600x400";
+                }
                 _unitOfWork.Villa.Add(obj);
                 _unitOfWork.Save();
                 TempData["success"] = "The villa has been successfully created!";
@@ -58,6 +74,27 @@ namespace BlueLagoon.Web.Controllers
         {           
             if (ModelState.IsValid && obj.Id > 0)
             {
+                if (obj.Image != null)
+                {
+                    string fileName = Guid.NewGuid().ToString() + Path.GetExtension(obj.Image.FileName);
+                    string path = Path.Combine(_webHostEnvironment.WebRootPath, @"images\VillaImages");
+                   
+
+                    if (!string.IsNullOrEmpty(obj.ImageUrl))
+                    {
+                        var oldPath = Path.Combine(_webHostEnvironment.WebRootPath, obj.ImageUrl.TrimStart('\\'));
+                        if (System.IO.File.Exists(oldPath))
+                        {
+                            System.IO.File.Delete(oldPath);
+                        }
+                    }
+
+                    using var filestream = new FileStream(Path.Combine(path, fileName), FileMode.Create);
+                    obj.Image.CopyTo(filestream);
+                    obj.ImageUrl = @"\images\VillaImages\" + fileName;
+
+                }
+
                 _unitOfWork.Villa.Update(obj);
                 _unitOfWork.Save();
                 TempData["success"] = "The villa has been successfully updated!";
@@ -73,8 +110,19 @@ namespace BlueLagoon.Web.Controllers
             if (villaId > 0)
             {
                 Villa? obj = _unitOfWork.Villa.Get(u=>u.Id== villaId);
+
                 if (obj is not null) 
                 {
+
+                    if (!string.IsNullOrEmpty(obj.ImageUrl))
+                    {
+                        var oldPath = Path.Combine(_webHostEnvironment.WebRootPath, obj.ImageUrl.TrimStart('\\'));
+                        if (System.IO.File.Exists(oldPath))
+                        {
+                            System.IO.File.Delete(oldPath);
+                        }
+                    }
+                    
                     _unitOfWork.Villa.Delete(obj);
                     _unitOfWork.Save();
                     TempData["success"] = "The villa has been successfully deleted!";

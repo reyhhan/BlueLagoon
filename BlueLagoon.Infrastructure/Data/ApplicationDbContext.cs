@@ -12,6 +12,7 @@ namespace BlueLagoon.Infrastructure.Data
         //Create villa table
         public DbSet<Villa> Villas { get; set; }
         public DbSet<VillaSuite> VillaSuites { get; set; }
+        public DbSet<Amenity> Amenities { get; set; }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             _ = modelBuilder.Entity<Villa>().HasData(
@@ -93,6 +94,44 @@ namespace BlueLagoon.Infrastructure.Data
                     VillaId = 3,
                 }
             );
+
+            modelBuilder.Entity<Amenity>().HasData(
+                new Amenity
+                {
+                    Id =1,
+                    Name = "Pool",
+                    Description = "xx",
+                    VillaId = 13
+                },
+                 new Amenity
+                 {
+                     Id =2,
+                     Name = "Jaquse",
+                     Description = "De",
+                     VillaId = 13
+                 },
+                  new Amenity
+                  {
+                      Id = 3,
+                      Name = "Balcony",
+                      Description = "De",
+                      VillaId = 2
+                  },
+                   new Amenity
+                   {
+                       Id = 4,
+                       Name = "Beach View",
+                       Description = "De",
+                       VillaId = 2
+                   },
+                    new Amenity
+                    {
+                        Id = 5,
+                        Name = "Terrace",
+                        Description = "De",
+                        VillaId = 3
+                    }
+                );
             
         }
     }

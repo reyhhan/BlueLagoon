@@ -9,6 +9,8 @@ namespace BlueLagoon.Application.Common.Interfaces
     public interface IUnitOfWork
     {
         IVillaRepository Villa { get; }
+        IVillaSuiteRepository VillaSuite { get; }
+        IAmenityRepository Amenity { get; } 
         void Save();
     }
 }

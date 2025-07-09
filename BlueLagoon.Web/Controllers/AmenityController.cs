@@ -1,29 +1,27 @@
 ﻿using BlueLagoon.Application.Common.Interfaces;
 using BlueLagoon.Domain.Entities;
-using BlueLagoon.Infrastructure.Data;
 using BlueLagoon.Web.ViewModels;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
-using Microsoft.EntityFrameworkCore;
 
 namespace BlueLagoon.Web.Controllers
 {
-    public class VillaSuiteController : Controller
+    public class AmenityController : Controller
     {
         private readonly IUnitOfWork _unitOfWork;
-        public VillaSuiteController(IUnitOfWork unitOfWork)
+
+        public AmenityController(IUnitOfWork unitOfWork)
         {
-           _unitOfWork = unitOfWork;
+            _unitOfWork = unitOfWork;
         }
         public IActionResult Index()
         {
-            var villaSuiteList = _unitOfWork.VillaSuite.GetAll(includeProperties:"Villa").ToList();
-            return View(villaSuiteList);
+            var amenityList = _unitOfWork.Amenity.GetAll(includeProperties: "Villa").ToList();
+            return View(amenityList);
         }
-
         public IActionResult Create()
         {
-            VillaSuiteVM villaSuiteVM = new()
+            AmenityVM amenityVM = new()
             {
                 VillaList = _unitOfWork.Villa.GetAll().Select(u => new SelectListItem
                 {
@@ -31,46 +29,41 @@ namespace BlueLagoon.Web.Controllers
                     Value = u.Id.ToString()
                 })
             };
-                   
-            return View(villaSuiteVM);
+
+            return View(amenityVM);
         }
 
         [HttpPost]
-        public IActionResult Create(VillaSuiteVM obj)
+        public IActionResult Create(AmenityVM obj)
         {
             ModelState.Remove("Villa");
-            bool roomExists = _unitOfWork.VillaSuite.Any(u => u.VillaSuitId == obj.VillaSuite.VillaSuitId);
 
-            if (ModelState.IsValid && !roomExists)
+            if (ModelState.IsValid)
             {
-                _unitOfWork.VillaSuite.Add(obj.VillaSuite);
+                _unitOfWork.Amenity.Add(obj.Amenity);
                 _unitOfWork.Save();
-                TempData["success"] = "The suite has been successfully created!";
+                TempData["success"] = "New amenity is created";
                 return RedirectToAction(nameof(Index));
             }
-            if (roomExists)
-            {
-                TempData["error"] = "Suite number already exists";
-            }
+
             obj.VillaList = _unitOfWork.Villa.GetAll().Select(u => new SelectListItem
             {
                 Text = u.Name,
                 Value = u.Id.ToString()
             });
-            return View(obj);
-            
-        }
 
+            return View(obj);
+        }
         public IActionResult Update(int villaSuiteId)
         {
-            VillaSuiteVM obj = new()
+            AmenityVM obj = new()
             {
-                VillaSuite = _unitOfWork.VillaSuite.Get(u => u.VillaSuitId == villaSuiteId)
+                Amenity = _unitOfWork.Amenity.Get(u => u.Id == villaSuiteId)
             };
 
             if (obj is null)
             {
-                return View(obj);    
+                return View(obj);
             }
             obj.VillaList = _unitOfWork.Villa.GetAll().Select(u => new SelectListItem
             {
@@ -81,59 +74,58 @@ namespace BlueLagoon.Web.Controllers
         }
 
         [HttpPost]
-        public IActionResult Update(VillaSuiteVM villaSuiteVM)
+        public IActionResult Update(AmenityVM amenityVM)
         {
             if (ModelState.IsValid)
             {
-                _unitOfWork.VillaSuite.Update(villaSuiteVM.VillaSuite);
+                _unitOfWork.Amenity.Update(amenityVM.Amenity);
                 _unitOfWork.Save();
-                TempData["success"] = "The villa has been successfully updated!";
+                TempData["success"] = "The amenity has been successfully updated!";
                 return RedirectToAction(nameof(Index));
-            }          
-            TempData["error"] = "The villa could not be updated!";
-            villaSuiteVM.VillaList = _unitOfWork.Villa.GetAll().Select(u => new SelectListItem
+            }
+            TempData["error"] = "The amenity could not be updated!";
+            amenityVM.VillaList = _unitOfWork.Villa.GetAll().Select(u => new SelectListItem
             {
                 Text = u.Name,
                 Value = u.Id.ToString()
             });
-            return View(villaSuiteVM);
+            return View(amenityVM);
         }
-       
-    
+
+
         public IActionResult Delete(int villaSuiteId)
         {
-            VillaSuiteVM villaSuiteVM = new()
+            AmenityVM amenityVM = new()
             {
                 VillaList = _unitOfWork.Villa.GetAll().Select(u => new SelectListItem
                 {
                     Text = u.Name,
                     Value = u.Id.ToString()
                 }),
-                VillaSuite = _unitOfWork.VillaSuite.Get(u => u.VillaSuitId == villaSuiteId)
+                Amenity = _unitOfWork.Amenity.Get(u => u.Id == villaSuiteId)
             };
-            if(villaSuiteVM.VillaSuite is null)
+            if (amenityVM.Amenity is null)
             {
                 return RedirectToAction("Error", "Home");
             }
-            return View(villaSuiteVM);
+            return View(amenityVM);
         }
 
         [HttpPost]
-        public IActionResult Delete(VillaSuiteVM villaSuiteVM)
+        public IActionResult Delete(AmenityVM amenityVM)
         {
-            VillaSuite villaSuite = _unitOfWork.VillaSuite.Get(c => c.VillaSuitId == villaSuiteVM.VillaSuite.VillaSuitId);
+            Amenity amenity = _unitOfWork.Amenity.Get(c => c.Id == amenityVM.Amenity.Id);
 
-            if (villaSuite is not null)
+            if (amenity is not null)
             {
-                _unitOfWork.VillaSuite.Delete(villaSuite);
+                _unitOfWork.Amenity.Delete(amenity);
                 _unitOfWork.Save();
                 TempData["success"] = "The suite has been successfully removed!";
                 return RedirectToAction(nameof(Index));
             }
-            
-            TempData["error"] = "The suite could not be deleted!"; 
-            return View(villaSuiteVM);
-        }
 
+            TempData["error"] = "The suite could not be deleted!";
+            return View(amenityVM);
+        }
     }
 }

@@ -27,6 +27,11 @@ namespace BlueLagoon.Infrastructure.Repository
             _db.Add(villa);
         }
 
+        public bool Any(Expression<Func<T, bool>> filter)
+        {
+           return dbSet.Any(filter);
+        }
+
         public void Delete(T villa)
         {
            _db.Remove(villa);
