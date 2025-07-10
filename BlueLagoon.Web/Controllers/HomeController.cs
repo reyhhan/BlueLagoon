@@ -1,21 +1,29 @@
 using System.Diagnostics;
+using BlueLagoon.Application.Common.Interfaces;
 using BlueLagoon.Web.Models;
+using BlueLagoon.Web.ViewModels;
 using Microsoft.AspNetCore.Mvc;
 
 namespace BlueLagoon.Web.Controllers
 {
     public class HomeController : Controller
     {
-        private readonly ILogger<HomeController> _logger;
+        private readonly IUnitOfWork _unitOfWork;
 
-        public HomeController(ILogger<HomeController> logger)
+        public HomeController(IUnitOfWork unitOfWork)
         {
-            _logger = logger;
+            _unitOfWork = unitOfWork;
         }
-
         public IActionResult Index()
         {
-            return View();
+            HomeVM homeVM = new()
+            {
+                VillaList = _unitOfWork.Villa.GetAll(includeProperties : "VillaAmenities"),
+                Nights = 1,
+                CheckInDate = DateOnly.FromDateTime(DateTime.Now)
+            };
+                
+            return View(homeVM);
         }
 
         public IActionResult Privacy()

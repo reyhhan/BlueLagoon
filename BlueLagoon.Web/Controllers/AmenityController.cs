@@ -21,6 +21,8 @@ namespace BlueLagoon.Web.Controllers
         }
         public IActionResult Create()
         {
+            ViewData["tap"] = "djd";
+
             AmenityVM amenityVM = new()
             {
                 VillaList = _unitOfWork.Villa.GetAll().Select(u => new SelectListItem
@@ -72,6 +74,7 @@ namespace BlueLagoon.Web.Controllers
             });
             return View(obj);
         }
+   
 
         [HttpPost]
         public IActionResult Update(AmenityVM amenityVM)
@@ -91,7 +94,6 @@ namespace BlueLagoon.Web.Controllers
             });
             return View(amenityVM);
         }
-
 
         public IActionResult Delete(int villaSuiteId)
         {
