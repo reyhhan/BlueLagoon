@@ -1,6 +1,9 @@
 using BlueLagoon.Application.Common.Interfaces;
+using BlueLagoon.Domain.Entities;
 using BlueLagoon.Infrastructure.Data;
 using BlueLagoon.Infrastructure.Repository;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -9,6 +12,10 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllersWithViews();
 builder.Services.AddDbContext<ApplicationDbContext>(option =>
 option.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+builder.Services.AddIdentity<ApplicationUser,  IdentityRole>().
+    AddEntityFrameworkStores<ApplicationDbContext>();
+
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 
 var app = builder.Build();

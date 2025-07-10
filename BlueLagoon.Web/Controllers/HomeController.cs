@@ -26,10 +26,6 @@ namespace BlueLagoon.Web.Controllers
             return View(homeVM);
         }
 
-        public IActionResult Privacy()
-        {
-            return View();
-        }
 
         public IActionResult Error()
         {
