@@ -1,10 +1,12 @@
 ﻿using BlueLagoon.Application.Common.Interfaces;
 using BlueLagoon.Domain.Entities;
 using BlueLagoon.Infrastructure.Data;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace BlueLagoon.Web.Controllers
 {
+    [Authorize]
     public class VillaController : Controller
     {
         private readonly IUnitOfWork _unitOfWork;

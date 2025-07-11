@@ -1,11 +1,14 @@
 ﻿using BlueLagoon.Application.Common.Interfaces;
+using BlueLagoon.Application.Utilities;
 using BlueLagoon.Domain.Entities;
 using BlueLagoon.Web.ViewModels;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 
 namespace BlueLagoon.Web.Controllers
 {
+    [Authorize(Roles = Constants.Role_Admin)]
     public class AmenityController : Controller
     {
         private readonly IUnitOfWork _unitOfWork;
@@ -14,6 +17,7 @@ namespace BlueLagoon.Web.Controllers
         {
             _unitOfWork = unitOfWork;
         }
+
         public IActionResult Index()
         {
             var amenityList = _unitOfWork.Amenity.GetAll(includeProperties: "Villa").ToList();
@@ -21,8 +25,6 @@ namespace BlueLagoon.Web.Controllers
         }
         public IActionResult Create()
         {
-            ViewData["tap"] = "djd";
-
             AmenityVM amenityVM = new()
             {
                 VillaList = _unitOfWork.Villa.GetAll().Select(u => new SelectListItem

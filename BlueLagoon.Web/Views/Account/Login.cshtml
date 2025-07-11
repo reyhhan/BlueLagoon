@@ -14,6 +14,7 @@
                 <div class="col-md-12">
                     <section>
                         <form method="post">
+                            <input asp-for="RedirectUrl" hidden/>
                             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
                             <div class="form-floating mb-3">
                                 <input asp-for="Email" class="form-control" aria-required="true" />
@@ -41,7 +42,7 @@
                                     <a asp-action="ForgetPassword" asp-controller="Account">Forgot your password?</a>
                                 </p>
                                 <p>
-                                    <a action="Register" asp-controller="Account">Register as a new user</a>
+                                    <a asp-action="Register" asp-route-returnUrl="@Model.RedirectUrl" asp-controller="Account">Register as a new user</a>
                                 </p>
                             </div>
                         </form>

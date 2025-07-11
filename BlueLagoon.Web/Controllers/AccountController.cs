@@ -4,7 +4,9 @@ using BlueLagoon.Domain.Entities;
 using BlueLagoon.Web.ViewModels;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace BlueLagoon.Web.Controllers
 {
@@ -26,7 +28,7 @@ namespace BlueLagoon.Web.Controllers
             _roleManager = roleManager;                     
         }
 
-        public IActionResult Login(string returnURL=null)
+        public IActionResult Login(string returnURL = null)
         {
             returnURL??= Url.Content("~/");
 
@@ -37,12 +39,24 @@ namespace BlueLagoon.Web.Controllers
             return View(loginVM);
         }
 
-        public IActionResult Register()
+        public async Task<IActionResult> Logout()
         {
-            if (!_roleManager.RoleExistsAsync("Admin").GetAwaiter().GetResult())
+            await _signInManager.SignOutAsync();
+            return RedirectToAction("Index", "Home");
+        }
+
+        public IActionResult AccessDenied()
+        {
+            return View();
+        }
+
+        public IActionResult Register(string returnURL = null)
+        {
+            returnURL ??= Url.Content("~/");
+            if (!_roleManager.RoleExistsAsync(Constants.Role_Admin).GetAwaiter().GetResult())
             {
-                _roleManager.CreateAsync(new IdentityRole("Admin")).Wait();
-                _roleManager.CreateAsync(new IdentityRole("Customer")).Wait();
+                _roleManager.CreateAsync(new IdentityRole(Constants.Role_Admin)).Wait();
+                _roleManager.CreateAsync(new IdentityRole(Constants.Role_Customer)).Wait();
             }
             RegisterVM registerVM = new()
             {
@@ -50,7 +64,8 @@ namespace BlueLagoon.Web.Controllers
                 {
                     Text = x.Name,
                     Value = x.Name
-                })
+                }),
+                RedirectUrl = returnURL
             };
             return View(registerVM);
         }
@@ -58,44 +73,46 @@ namespace BlueLagoon.Web.Controllers
         [HttpPost]
         public async Task<IActionResult> Register(RegisterVM registerVM)
         {
-            ApplicationUser user = new()
+            if (ModelState.IsValid)
             {
-                Name = registerVM.Name,
-                Email = registerVM.Email,
-                PhoneNumber = registerVM.PhoneNumber,
-                NormalizedEmail = registerVM.Email.ToUpper(),
-                EmailConfirmed = true,
-                UserName = registerVM.Email,
-                CreatedAt = DateTime.Now,
-            };
+                ApplicationUser user = new()
+                {
+                    Name = registerVM.Name,
+                    Email = registerVM.Email,
+                    PhoneNumber = registerVM.PhoneNumber,
+                    NormalizedEmail = registerVM.Email.ToUpper(),
+                    EmailConfirmed = true,
+                    UserName = registerVM.Email,
+                    CreatedAt = DateTime.Now,
+                };
+                var result = await _userManager.CreateAsync(user, registerVM.Password);
+                if (result.Succeeded)
+                {
+                    if (!string.IsNullOrEmpty(registerVM.Role))
+                    {
+                        await _userManager.AddToRoleAsync(user, registerVM.Role);
+                    }
+                    else
+                    {
+                        await _userManager.AddToRoleAsync(user, Constants.Role_Customer);
+                    }
+                    await _signInManager.SignInAsync(user, isPersistent: false);
 
-            var  result = await _userManager.CreateAsync(user, registerVM.Password);
-            if (result.Succeeded)
-            {
-                if (!string.IsNullOrEmpty(registerVM.Role))
-                {
-                    await _userManager.AddToRoleAsync(user, registerVM.Role);
+                    if (string.IsNullOrEmpty(registerVM.RedirectUrl))
+                    {
+                        return RedirectToAction("Index", "Home");
+                    }
+                    else
+                    {
+                        return LocalRedirect(registerVM.RedirectUrl);
+                    }
                 }
-                else
+                foreach (var error in result.Errors)
                 {
-                    await _userManager.AddToRoleAsync(user, Constants.Role_Customer);
-                }
-                await _signInManager.SignInAsync(user, isPersistent: false);
-                //return RedirectToAction("Index", "Home");
-
-                if (string.IsNullOrEmpty(registerVM.RedirectUrl))
-                {
-                    return RedirectToAction("Index", "Home");
-                }
-                else
-                {
-                    return LocalRedirect(registerVM.RedirectUrl);
+                    ModelState.AddModelError("", error.Description);
                 }
             }
-            foreach (var error in result.Errors)
-            {
-                ModelState.AddModelError("", error.Description);
-            }
+            
             registerVM = new()
             {
                 RoleList = _roleManager.Roles.Select(x => new SelectListItem
@@ -103,15 +120,39 @@ namespace BlueLagoon.Web.Controllers
                     Text = x.Name,
                     Value = x.Name
                 })
-            };
-           
-            if (!_roleManager.RoleExistsAsync(Constants.Role_Admin).GetAwaiter().GetResult())
-            {
-                _roleManager.CreateAsync(new IdentityRole(Constants.Role_Admin)).Wait();
-                _roleManager.CreateAsync(new IdentityRole(Constants.Role_Customer)).Wait();
-            }
-           
+            };           
+         
             return View(registerVM);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> Login(LoginVM user)
+        {
+            if (ModelState.IsValid)
+            {
+                //encrypted password
+                var result = await _signInManager.PasswordSignInAsync(user.Email, user.Password, user.RememberMe, lockoutOnFailure: false);
+
+                if (result.Succeeded)
+                {
+                  
+                    if (string.IsNullOrEmpty(user.RedirectUrl))
+                    {
+                        return RedirectToAction("Index", "Home");
+                    }
+                    else
+                    {
+                        return LocalRedirect($"{user.RedirectUrl}");
+                    }
+                }
+                else
+                {
+                    ModelState.AddModelError("", "Invalid login attempt");
+                }
+            }
+
+            return View(user);
+           
         }
     }
 }
