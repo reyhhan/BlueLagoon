@@ -27,5 +27,8 @@ namespace BlueLagoon.Domain.Entities
 
         [ValidateNever]
         public ICollection<Amenity>? VillaAmenities { get; set; }
+
+        [NotMapped]
+        public bool IsAvailable { get; set; } = true;
     }
 }
