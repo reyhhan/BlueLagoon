@@ -15,6 +15,7 @@ namespace BlueLagoon.Infrastructure.Data
         public DbSet<VillaSuite> VillaSuites { get; set; }
         public DbSet<Amenity> Amenities { get; set; }
         public DbSet<ApplicationUser> ApplicationUsers { get; set; }
+        public DbSet<Booking> Bookings { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

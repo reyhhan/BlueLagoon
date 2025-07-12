@@ -5,6 +5,7 @@ using BlueLagoon.Infrastructure.Repository;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
+using Stripe;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -24,9 +25,14 @@ builder.Services.Configure<IdentityOptions>(options =>
 });
 
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
+var publishableKey = builder.Configuration["Stripe:PublishableKey"];
+var secretKey = builder.Configuration["Stripe:SecretKey"];
+
+
 
 var app = builder.Build();
-
+//StripeConfiguration.ApiKey = builder.Configuration.GetSection("Stripe:SecretKey").Get<string>();
+StripeConfiguration.ApiKey = secretKey;
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
 {

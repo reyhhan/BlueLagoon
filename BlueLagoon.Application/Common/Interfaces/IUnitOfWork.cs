@@ -11,6 +11,8 @@ namespace BlueLagoon.Application.Common.Interfaces
         IVillaRepository Villa { get; }
         IVillaSuiteRepository VillaSuite { get; }
         IAmenityRepository Amenity { get; } 
+        IBookingRepository Booking { get; }
+        IApplicationUserRepository ApplicationUser { get; }
         void Save();
     }
 }

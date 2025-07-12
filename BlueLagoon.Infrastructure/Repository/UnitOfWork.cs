@@ -8,7 +8,11 @@ namespace BlueLagoon.Infrastructure.Repository
         private readonly ApplicationDbContext _db;
         public IVillaRepository Villa { get; private set; }
         public IVillaSuiteRepository VillaSuite { get; private set; }
-        public IAmenityRepository Amenity { get; private set; } 
+        public IAmenityRepository Amenity { get; private set; }
+
+        public IBookingRepository Booking { get; private set; }
+
+        public IApplicationUserRepository ApplicationUser { get; private set; }
 
         public UnitOfWork(ApplicationDbContext db)
         {
@@ -16,6 +20,8 @@ namespace BlueLagoon.Infrastructure.Repository
             Villa = new VillaRepository(_db);
             VillaSuite = new VillaSuiteRepository(_db);
             Amenity = new AmenityRepository(_db);
+            Booking = new BookingRepository(_db);
+            ApplicationUser = new ApplicationUserRepository(_db);
         }
 
         public void Save()

@@ -1,4 +1,5 @@
 ﻿@model HomeVM
+
 <div id="VillasList">
     <div class="row px-lg-5 m-lg-4 m-sm-0 px-sm-0" style="--bs-gutter-x:0">
         @foreach (var villa in Model.VillaList)
@@ -24,18 +25,23 @@
                     <div class="col-12">
                         <div class="row pb-3 pt-2">
                             <div class="col-4">
-                                @if (Model.CheckInDate >= DateOnly.FromDateTime(DateTime.Now) && villa.IsAvailable)
+                                @if (Model.CheckInDate > DateOnly.FromDateTime(DateTime.Now) && villa.IsAvailable)
                                 {
-                                    <a class="btn btn-success form-control btn-block">
-                                        Book
-                                    </a>
-                                }
-                                else
-                                {
-                                    <a class="btn btn-outline-danger form-control btn-block">
-                                        Sold Out
-                                    </a>
-                                }
+                                    if (villa.IsAvailable)
+                                    {
+                                        <a asp-action="FinalizeBooking" asp-controller="Booking" asp-route-villaId="@villa.Id"
+                                           asp-route-checkInDate="@Model.CheckInDate" asp-route-nights="@Model.Nights" class="btn btn-success form-control btn-block">
+                                            Book
+                                        </a>
+                                    }
+                                    else
+                                    {
+                                        <a class="btn btn-outline-danger form-control btn-block">
+                                            Sold Out
+                                        </a>
+                                    }
+                                   
+                                }                               
 
                             </div>
                             <div class="col-4">
