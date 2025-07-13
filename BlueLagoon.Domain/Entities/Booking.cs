@@ -19,6 +19,7 @@ namespace BlueLagoon.Domain.Entities
 
         [Required]
         public int VillaId { get; set; }
+
         [ForeignKey("VillaId")]
         public Villa Villa { get; set; }
 
@@ -50,7 +51,9 @@ namespace BlueLagoon.Domain.Entities
 
         public DateTime ActualCheckOutDate { get; set; }
 
-        public int ViilaNumber { get; set; }
+        public int VillaSuite { get; set; }
+        [NotMapped]
+        public List<VillaSuite> VillaSuites { get; set; }
 
 
     }

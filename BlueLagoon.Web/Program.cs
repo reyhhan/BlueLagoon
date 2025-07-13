@@ -12,7 +12,7 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 builder.Services.AddControllersWithViews();
 builder.Services.AddDbContext<ApplicationDbContext>(option =>
-option.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+option.UseSqlServer(builder.Configuration["ConnectionStrings:DefaultConnection"]));
 
 builder.Services.AddIdentity<ApplicationUser,  IdentityRole>()
     .AddEntityFrameworkStores<ApplicationDbContext>();
@@ -27,8 +27,6 @@ builder.Services.Configure<IdentityOptions>(options =>
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 var publishableKey = builder.Configuration["Stripe:PublishableKey"];
 var secretKey = builder.Configuration["Stripe:SecretKey"];
-
-
 
 var app = builder.Build();
 //StripeConfiguration.ApiKey = builder.Configuration.GetSection("Stripe:SecretKey").Get<string>();

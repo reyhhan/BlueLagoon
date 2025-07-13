@@ -3,6 +3,7 @@ using BlueLagoon.Application.Utilities;
 using BlueLagoon.Domain.Entities;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Stripe.Checkout;
 using System.Security.Claims;
 
 namespace BlueLagoon.Web.Controllers
@@ -15,7 +16,48 @@ namespace BlueLagoon.Web.Controllers
         {
             _unitOfWork = unitOfWork;
         }
+
         [Authorize]
+
+        public IActionResult Index()
+        {
+            return View();
+        }
+
+        public IActionResult BookingDetails(int bookingId)
+        {
+            Booking booking = _unitOfWork.Booking.Get(u => u.BookingId == bookingId, includeProperties: "User,Villa");
+            if(booking.VillaSuite == 0 && booking.Status == Constants.StatusApproved)
+            {
+                var availableVillaNumber = AssignAvailableVillaSuiteByVilla(booking.VillaId);
+                booking.VillaSuites = _unitOfWork.VillaSuite.GetAll(u => u.VillaId == booking.VillaId && availableVillaNumber.Any(x => x == u.VillaSuitId)).ToList(); 
+            }
+            return View(booking);
+        }
+
+        [HttpPost]
+
+
+        private List<int> AssignAvailableVillaSuiteByVilla(int villaId)
+        {
+            List<int> availableVillaSuites = new();
+
+            var villaSuites = _unitOfWork.VillaSuite.GetAll(u => u.VillaId == villaId);
+
+            var bookedVillaSuites = _unitOfWork.Booking.GetAll(u => u.VillaId == villaId && u.Status == Constants.StatusCheckedIn)
+                .Select(u => u.VillaSuite);
+
+            foreach (var villaSuite in villaSuites)
+            {
+                if (!bookedVillaSuites.Contains(villaSuite.VillaSuitId))
+                {
+                    availableVillaSuites.Add(villaSuite.VillaSuitId);
+                }
+            }
+            return availableVillaSuites;
+
+        }
+
         public IActionResult FinalizeBooking(int villaId, DateOnly checkInDate, int nights)
         {
             var claimsIdentity = (ClaimsIdentity)User.Identity;
@@ -50,12 +92,91 @@ namespace BlueLagoon.Web.Controllers
 
             _unitOfWork.Booking.Add(booking);
             _unitOfWork.Save();
-            return RedirectToAction(nameof(BookingConfirmation), new { bookingId = booking.BookingId });
+
+            var domain = Request.Scheme + "://" + Request.Host.Value + "/";
+            var options = new Stripe.Checkout.SessionCreateOptions
+            {
+                SuccessUrl = domain + $"booking/BookingConfirmation?bookingId={booking.BookingId}",
+                LineItems = new List<Stripe.Checkout.SessionLineItemOptions>(),
+                Mode = "payment",
+                CancelUrl = domain + $"booking/FinalizeBooking?villaId={booking.VillaId}&checkInDate={booking.CheckInDate}&nights={booking.Nights}"
+
+            };
+
+            options.LineItems.Add(new Stripe.Checkout.SessionLineItemOptions
+            {
+                PriceData = new Stripe.Checkout.SessionLineItemPriceDataOptions
+                {
+                    UnitAmount = (long)booking.TotalCost * 100,
+                    Currency = "usd",
+                    ProductData = new Stripe.Checkout.SessionLineItemPriceDataProductDataOptions
+                    {
+                        Name = villa.Name,
+                    },
+                },
+                Quantity = 1
+            });
+
+            var service = new Stripe.Checkout.SessionService();
+            Stripe.Checkout.Session session = service.Create(options);
+            _unitOfWork.Booking.UpdateStripePaymentID(booking.BookingId, session.Id, session.PaymentIntentId);
+            _unitOfWork.Save();
+
+            Response.Headers.Add("Location", session.Url);
+            return new StatusCodeResult(303);
         }
 
+        [Authorize]
         public IActionResult BookingConfirmation(int bookingId)
-        {        
+        {
+
+            Booking booking = _unitOfWork.Booking.Get(u => u.BookingId == bookingId, includeProperties: "User,Villa");
+
+            if(booking.Status == Constants.StatusPending)
+            {
+                var service = new SessionService();
+                Session session = service.Get(booking.StripeSessionId);
+
+                if(session.PaymentStatus == "paid")
+                {
+                    //confirm is successful payment
+                    _unitOfWork.Booking.UpdateStatus(bookingId, Constants.StatusApproved, 0);
+                    _unitOfWork.Booking.UpdateStripePaymentID(booking.BookingId, session.Id, session.PaymentIntentId);
+                    _unitOfWork.Save();
+                }
+            }
             return View(bookingId);
         }
+
+
+        #region API CALLS
+        [HttpGet]
+        [Authorize(Roles = Constants.Role_Admin + "," + Constants.Role_Customer)]
+        public IActionResult GetAll(string status)
+        {
+            IEnumerable<Booking> objBookings;
+
+            if (User.IsInRole(Constants.Role_Admin))
+            {
+                objBookings = _unitOfWork.Booking.GetAll(includeProperties : "User,Villa");
+            }
+            else
+            {
+                var claimsIdentity = (ClaimsIdentity)User.Identity;
+                var userId = claimsIdentity.FindFirst(ClaimTypes.NameIdentifier).Value;
+
+                objBookings = _unitOfWork.Booking.GetAll(u => u.UserId == userId, includeProperties: "User,Villa");
+            }
+
+            if (!string.IsNullOrEmpty(status))
+            {
+                objBookings = objBookings.Where(u => u.Status.ToLower().Equals(status.ToLower()));
+            }
+            return Json(new { data = objBookings });    
+        }
+
+
+
+        #endregion
     }
 }

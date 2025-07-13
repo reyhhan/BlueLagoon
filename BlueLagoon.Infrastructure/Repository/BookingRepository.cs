@@ -18,7 +18,7 @@ namespace BlueLagoon.Infrastructure.Repository
             _db.Bookings.Update(booking);
         }
 
-        public void UpdateStatus(int bookingId, string bookingStatus)
+        public void UpdateStatus(int bookingId, string bookingStatus, int villaSuite = 0)
         {
             var booking = _db.Bookings.FirstOrDefault(m => m.BookingId == bookingId);
             if (booking != null)
@@ -26,6 +26,7 @@ namespace BlueLagoon.Infrastructure.Repository
                 booking.Status = bookingStatus;
                 if (bookingStatus == Constants.StatusCheckedIn)
                 {
+                    booking.VillaSuite = villaSuite;
                     booking.ActualCheckInDate = DateTime.Now;
                 }
 

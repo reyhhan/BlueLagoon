@@ -1,0 +1,81 @@
+﻿
+@{
+    var status = Context.Request.Query["status"];
+
+     var approved = "";
+    var pending = "";
+    var checkedIn = "";
+    var completed = "";
+    var cancelled = "";
+
+    switch (status)
+    {
+        case Constants.StatusPending:
+            pending = "text-white bg-success";
+            break;
+        case Constants.StatusApproved:
+            approved = "text-white bg-success";
+            break;
+        case Constants.StatusCheckedIn:
+            checkedIn = "text-white bg-success";
+            break;
+        case Constants.StatusCompleted:
+            completed = "text-white bg-success";
+            break;
+        case Constants.StatusCancelled:
+            cancelled = "text-white bg-success";
+            break;
+        default:
+            break;
+    }
+}
+<div class="w-100 card border-0 p-4">
+    <div class="card-header bg-success bg-gradient ml-0 py-3">
+        <div class="row">
+            <div class="col-12 text-center">
+                <h2 class="text-white py-2">Booking List</h2>
+            </div>
+        </div>
+    </div>
+    <div class="card-body border p-4">
+        <div class="d-flex justify-content-end pb-4 pt-2">
+            <ul class="list-group list-group-horizontal-sm">
+                <a style="text-decoration : none" asp-action="Index" asp-controller="Booking" asp-route-status="@Constants.StatusPending">
+                <li class="list-group-item @pending">@Constants.StatusPending</li>
+                </a>
+                <a style="text-decoration : none" asp-action="Index" asp-controller="Booking" asp-route-status="@Constants.StatusApproved">
+                <li class="list-group-item @approved">@Constants.StatusApproved</li>
+                </a>
+                <a style="text-decoration : none" asp-action="Index" asp-controller="Booking" asp-route-status="@Constants.StatusCheckedIn">
+                <li class="list-group-item @checkedIn">@Constants.StatusCheckedIn</li>
+                </a>
+                <a style="text-decoration : none" asp-action="Index" asp-controller="Booking" asp-route-status="@Constants.StatusCompleted">
+                <li class="list-group-item @completed">@Constants.StatusCompleted</li>
+                </a>
+                <a style="text-decoration : none" asp-action="Index" asp-controller="Booking" asp-route-status="@Constants.StatusCancelled">
+                <li class="list-group-item @cancelled">@Constants.StatusCancelled</li>
+                </a>
+            </ul>
+        </div>
+        <table id="tblBookings" class="table table-bordered table-striped">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Name</th>
+                    <th>Phone</th>
+                    <th>Email</th>
+                    <th>Nights</th>
+                    <th>Status</th>
+                    <th>Check In</th>
+                    <th>Check out</th>
+                    <th>Total</th>
+                    <th></th>
+                </tr>
+            </thead>
+       
+        </table>
+    </div>
+</div>
+@section Scripts {
+    <script src="~/js/booking.js"></script>
+}
