@@ -135,15 +135,24 @@ namespace BlueLagoon.Web.Controllers
 
                 if (result.Succeeded)
                 {
-                  
-                    if (string.IsNullOrEmpty(user.RedirectUrl))
+                    var findUser = await _userManager.FindByEmailAsync(user.Email);
+
+                    if (await _userManager.IsInRoleAsync(findUser, Constants.Role_Admin))
                     {
-                        return RedirectToAction("Index", "Home");
+                        return RedirectToAction("Index", "Dashboard");
                     }
-                    else
+                    else 
                     {
-                        return LocalRedirect($"{user.RedirectUrl}");
+                        if (string.IsNullOrEmpty(user.RedirectUrl))
+                        {
+                            return RedirectToAction("Index", "Home");
+                        }
+                        else
+                        {
+                            return LocalRedirect($"{user.RedirectUrl}");
+                        }
                     }
+                       
                 }
                 else
                 {

@@ -36,8 +36,35 @@ namespace BlueLagoon.Web.Controllers
         }
 
         [HttpPost]
+        [Authorize(Roles = Constants.Role_Admin)]
+        public IActionResult CheckIn(Booking booking)
+        {
+            _unitOfWork.Booking.UpdateStatus(booking.BookingId, Constants.StatusCheckedIn, booking.VillaSuite);
+            _unitOfWork.Save();
+            TempData["Success"] = "This booking has been updated successfully";
+            return RedirectToAction(nameof(BookingDetails), new {bookingId = booking.BookingId });
+        }
 
 
+        [HttpPost]
+        [Authorize(Roles = Constants.Role_Admin)]
+        public IActionResult CheckOut(Booking booking)
+        {
+            _unitOfWork.Booking.UpdateStatus(booking.BookingId, Constants.StatusCompleted, booking.VillaSuite);
+            _unitOfWork.Save();
+            TempData["Success"] = "This booking has been completed upon checkout";
+            return RedirectToAction(nameof(BookingDetails), new { bookingId = booking.BookingId });
+        }
+
+        [HttpPost]
+        [Authorize(Roles = Constants.Role_Admin)]
+        public IActionResult CancelBooking(Booking booking)
+        {
+            _unitOfWork.Booking.UpdateStatus(booking.BookingId, Constants.StatusCancelled, 0);
+            _unitOfWork.Save();
+            TempData["Success"] = "This booking has been cancelled";
+            return RedirectToAction(nameof(BookingDetails), new { bookingId = booking.BookingId });
+        }
         private List<int> AssignAvailableVillaSuiteByVilla(int villaId)
         {
             List<int> availableVillaSuites = new();
@@ -90,6 +117,23 @@ namespace BlueLagoon.Web.Controllers
             booking.Status = Constants.StatusPending;
             booking.BookingDate = DateTime.Now;
 
+ 
+            var villaSuites = _unitOfWork.VillaSuite.GetAll().ToList();
+            var bookedVillas = _unitOfWork.Booking.GetAll(u => u.Status == Constants.StatusApproved || u.Status == Constants.StatusCheckedIn).ToList();
+        
+            int roomsAvaialble = Constants.VillaRoomsAvailable_Count(villa.Id, villaSuites, booking.CheckInDate, booking.Nights, bookedVillas);
+
+            if(roomsAvaialble == 0)
+            {
+                TempData["error"] = "Rooms not available";
+                return RedirectToAction(nameof(FinalizeBooking), new
+                {
+                    villaId = booking.VillaId,
+                    checkIndate = booking.CheckInDate,
+                    nights = booking.Nights
+                });
+            }
+           
             _unitOfWork.Booking.Add(booking);
             _unitOfWork.Save();
 
