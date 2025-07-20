@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Stripe;
+using Syncfusion.Licensing;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -31,6 +32,10 @@ var secretKey = builder.Configuration["Stripe:SecretKey"];
 var app = builder.Build();
 //StripeConfiguration.ApiKey = builder.Configuration.GetSection("Stripe:SecretKey").Get<string>();
 StripeConfiguration.ApiKey = secretKey;
+
+var licenseKey = builder.Configuration["Syncfusion:LicenseKey"];
+SyncfusionLicenseProvider.RegisterLicense(licenseKey);
+
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
 {

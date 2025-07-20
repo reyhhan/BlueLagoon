@@ -4,6 +4,12 @@ using BlueLagoon.Domain.Entities;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Stripe.Checkout;
+using Syncfusion.DocIO;
+using Syncfusion.DocIO.DLS;
+using Syncfusion.DocIO.Utilities;
+using Syncfusion.DocIORenderer;
+using Syncfusion.Drawing;
+using Syncfusion.Pdf;
 using System.Security.Claims;
 
 namespace BlueLagoon.Web.Controllers
@@ -11,10 +17,12 @@ namespace BlueLagoon.Web.Controllers
     public class BookingController : Controller
     {
         private readonly IUnitOfWork _unitOfWork;
+        private readonly IWebHostEnvironment _webHostEnvironment;
         
-        public BookingController(IUnitOfWork unitOfWork)
+        public BookingController(IUnitOfWork unitOfWork, IWebHostEnvironment webHostEnvironment)
         {
             _unitOfWork = unitOfWork;
+            _webHostEnvironment = webHostEnvironment;
         }
 
         [Authorize]
@@ -192,6 +200,117 @@ namespace BlueLagoon.Web.Controllers
             return View(bookingId);
         }
 
+        [Authorize]
+        [HttpPost]
+        public IActionResult GenerateInvoice(int bookingId, string downloadType)
+        {
+            string basepath = _webHostEnvironment.WebRootPath;
+
+            WordDocument  document = new WordDocument();
+
+            //Loading the templalte
+            string dataPath = basepath + @"/exports/BookingDetails.docx";
+
+            using FileStream filestream = new FileStream(dataPath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+            document.Open(filestream, FormatType.Automatic);
+
+            //Updating the template
+            Booking booking = _unitOfWork.Booking.Get(u => u.BookingId == bookingId, includeProperties: "User,Villa");
+
+
+            TextSelection textSelection = document.Find("xx_customer_name", false, true);
+            WTextRange textRange = textSelection.GetAsOneRange();
+            textRange.Text = booking.Name;
+
+            textSelection = document.Find("XX_BOOKING_NUMBER", false, true);
+            textRange = textSelection.GetAsOneRange();
+            textRange.Text = "BOOKING ID - "+ booking.BookingId;
+
+
+            textSelection = document.Find("XX_BOOKING_DATE", false, true);
+            textRange = textSelection.GetAsOneRange();
+            textRange.Text = "BOOKING DATE - " + booking.BookingDate.ToShortDateString();
+
+            textSelection = document.Find("xx_customer_email", false, true);
+            textRange = textSelection.GetAsOneRange();
+            textRange.Text = booking.Email;
+
+            textSelection = document.Find("xx_payment_date", false, true);
+            textRange = textSelection.GetAsOneRange();
+            textRange.Text = booking.PaymentDate.ToShortDateString();
+
+            textSelection = document.Find("xx_checkin_date", false, true);
+            textRange = textSelection.GetAsOneRange();
+            textRange.Text = booking.CheckInDate.ToShortDateString();
+
+            textSelection = document.Find("xx_checkout_date", false, true);
+            textRange = textSelection.GetAsOneRange();
+            textRange.Text = booking.CheckOutDate.ToShortDateString();
+
+            textSelection = document.Find("xx_booking_total", false, true);
+            textRange = textSelection.GetAsOneRange();
+            textRange.Text = booking.TotalCost.ToString("c");
+
+
+            WTable table = new(document);
+            table.TableFormat.Borders.LineWidth = 1f;
+            table.TableFormat.Borders.Color = Color.Black;
+            table.TableFormat.Paddings.Top = 7f;
+            table.TableFormat.Paddings.Bottom = 7f;
+            table.TableFormat.Borders.Horizontal.LineWidth = 7f;
+
+
+            table.ResetCells(2, 4);
+
+            WTableRow row0 = table.Rows[0];
+            row0.Cells[0].AddParagraph().AppendText("NIGHTS");
+            row0.Cells[0].Width = 80;
+
+            row0.Cells[1].AddParagraph().AppendText("VILLA");
+            row0.Cells[1].Width = 80;
+
+            row0.Cells[2].AddParagraph().AppendText("PRICE");
+            row0.Cells[2].Width = 80;
+
+            row0.Cells[3].AddParagraph().AppendText("TOTAL");
+            row0.Cells[3].Width = 80;
+
+            WTableRow row1 = table.Rows[1];
+            row1.Cells[0].AddParagraph().AppendText(booking.Nights.ToString());
+            row1.Cells[0].Width = 80;
+            row1.Cells[1].AddParagraph().AppendText(booking.Villa.Name + "-" + booking);
+            row1.Cells[1].Width = 80;
+            row1.Cells[2].AddParagraph().AppendText((booking.TotalCost/booking.Nights).ToString("c"));
+            row1.Cells[2].Width = 80;
+            row1.Cells[3].AddParagraph().AppendText(booking.TotalCost.ToString());
+            row1.Cells[3].Width = 80;
+
+            TextBodyPart bodyPart = new TextBodyPart(document);
+            bodyPart.BodyItems.Add(table);
+
+            document.Replace("<ADDTABLEHERE>", bodyPart, false, false);
+
+
+            using DocIORenderer renderer = new();
+            MemoryStream stream = new MemoryStream();
+
+            if (downloadType == "word")
+            {
+                document.Save(stream, FormatType.Docx);
+                stream.Position = 0;
+
+                return File(stream, "application/docx", "BookingDetails.docx");
+            }
+            else
+            {
+                PdfDocument pdfDocument = renderer.ConvertToPDF(document);
+                pdfDocument.Save(stream);
+                stream.Position = 0;
+
+                return File(stream, "application/pdf", "BookingDetails.pdf");
+            }
+
+        }
 
         #region API CALLS
         [HttpGet]
