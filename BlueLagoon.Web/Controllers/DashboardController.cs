@@ -2,6 +2,7 @@
 using BlueLagoon.Application.Utilities;
 using BlueLagoon.Web.ViewModels;
 using Microsoft.AspNetCore.Mvc;
+using System.Linq;
 
 namespace BlueLagoon.Web.Controllers
 {
@@ -89,7 +90,73 @@ namespace BlueLagoon.Web.Controllers
             return Json(PieChartDto);
         }
 
-       
+        public async Task<IActionResult> GetMemberAndBookingLineBarChart()
+        {
+            var bookingData = _unitOfWork.Booking.GetAll(u => u.BookingDate >= DateTime.Now.AddDays(-30) && u.BookingDate.Date <= DateTime.Now)
+                .GroupBy(b => b.BookingDate.Date)
+                .Select(m => new
+                {
+                    DateTime = m.Key,
+                    NewBookingCount = m.Count(),
+                });
+
+            var customerData = _unitOfWork.ApplicationUser.GetAll(u => u.CreatedAt >= DateTime.Now.AddDays(-30) && u.CreatedAt.Date <= DateTime.Now)
+                .GroupBy(b => b.CreatedAt.Date)
+                .Select(m => new
+                {
+                    DateTime = m.Key,
+                    NewUserCount = m.Count(),
+                });
+
+            var leftJoin = bookingData.GroupJoin(customerData, booking => booking.DateTime, customer => customer.DateTime,
+                (booking, customer) => new
+                {
+                    booking.DateTime,
+                    booking.NewBookingCount,
+                    NewUserCount = customer.Select(x => x.NewUserCount).FirstOrDefault()
+                }).ToList();
+            
+
+            var rightJoin = customerData.GroupJoin(bookingData, customer => customer.DateTime, booking => booking.DateTime,
+                (customer, booking) => new
+                {
+                    customer.DateTime,
+                    NewBookingCount = booking.Select(x => x.NewBookingCount).FirstOrDefault(),
+                    customer.NewUserCount
+                }).ToList();
+
+            var mergedData = leftJoin.Union(rightJoin).OrderBy(x => x.DateTime).ToList();
+
+            var newBookingData = mergedData.Select(x => x.NewBookingCount).ToArray();
+            var newCustomerData = mergedData.Select(x => x.NewUserCount).ToArray();
+            var categories = mergedData.Select(x => x.DateTime.ToString("MM/dd/yyyy")).ToArray();
+
+            LineChartVM lineChartVM = new()
+            {
+                Categories = categories,               
+            };
+
+            List<ChartData> charDataList = new()
+            {
+                new ChartData
+                {
+                    Name = "New Bookings",
+                    Data = newBookingData
+                },
+                 new ChartData
+                {
+                    Name = "New Members",
+                    Data = newCustomerData
+                }
+            };
+            lineChartVM.Series = charDataList;
+
+            return Json(lineChartVM);
+
+        
+
+        }
+
         private static RadialBarChartVM GetRadialBarChartData(int count, double countByCurrentMonth, double countByPreviousMonth)
         {
             int increaseRatio = 100;

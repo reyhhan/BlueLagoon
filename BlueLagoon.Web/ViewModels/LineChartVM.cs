@@ -1,6 +1,6 @@
 ﻿namespace BlueLagoon.Web.ViewModels
 {
-    public class LineChartDto
+    public class LineChartVM
     {
         public List<ChartData> Series { get; set; }
         public string[] Categories { get; set; }
