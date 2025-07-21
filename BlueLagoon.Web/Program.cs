@@ -1,4 +1,6 @@
 using BlueLagoon.Application.Common.Interfaces;
+using BlueLagoon.Application.Services.Implementation;
+using BlueLagoon.Application.Services.Interface;
 using BlueLagoon.Domain.Entities;
 using BlueLagoon.Infrastructure.Data;
 using BlueLagoon.Infrastructure.Repository;
@@ -26,6 +28,9 @@ builder.Services.Configure<IdentityOptions>(options =>
 });
 
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
+builder.Services.AddScoped<IDashboardService, DashboardService>();
+builder.Services.AddScoped<IDbInitializer, DbInitializer>();
+
 var publishableKey = builder.Configuration["Stripe:PublishableKey"];
 var secretKey = builder.Configuration["Stripe:SecretKey"];
 
@@ -50,9 +55,18 @@ app.UseStaticFiles();
 app.UseRouting();
 
 app.UseAuthorization();
-
+SeedDatabase();
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
 
 app.Run();
+
+void SeedDatabase()
+{
+    using(var scope = app.Services.CreateScope())
+    {
+        var dbInitializer = scope.ServiceProvider.GetRequiredService<IDbInitializer>();  
+        dbInitializer.Initialize();
+    }
+}

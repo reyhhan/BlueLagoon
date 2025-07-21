@@ -53,11 +53,11 @@ namespace BlueLagoon.Web.Controllers
         public IActionResult Register(string returnURL = null)
         {
             returnURL ??= Url.Content("~/");
-            if (!_roleManager.RoleExistsAsync(Constants.Role_Admin).GetAwaiter().GetResult())
-            {
-                _roleManager.CreateAsync(new IdentityRole(Constants.Role_Admin)).Wait();
-                _roleManager.CreateAsync(new IdentityRole(Constants.Role_Customer)).Wait();
-            }
+            //if (!_roleManager.RoleExistsAsync(Constants.Role_Admin).GetAwaiter().GetResult())
+            //{
+            //    _roleManager.CreateAsync(new IdentityRole(Constants.Role_Admin)).Wait();
+            //    _roleManager.CreateAsync(new IdentityRole(Constants.Role_Customer)).Wait();
+            //}
             RegisterVM registerVM = new()
             {
                 RoleList = _roleManager.Roles.Select(x => new SelectListItem
