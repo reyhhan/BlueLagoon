@@ -106,14 +106,14 @@ namespace BlueLagoon.Infrastructure.Data
                     Id =1,
                     Name = "Pool",
                     Description = "xx",
-                    VillaId = 13
+                    VillaId = 1
                 },
                  new Amenity
                  {
                      Id =2,
                      Name = "Jaquse",
                      Description = "De",
-                     VillaId = 13
+                     VillaId = 1
                  },
                   new Amenity
                   {

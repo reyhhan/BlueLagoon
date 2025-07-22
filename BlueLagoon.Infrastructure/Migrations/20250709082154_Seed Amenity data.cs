@@ -38,8 +38,8 @@ namespace BlueLagoon.Infrastructure.Migrations
                 columns: new[] { "Id", "Description", "Name", "VillaId" },
                 values: new object[,]
                 {
-                    { 1, "xx", "Pool", 13 },
-                    { 2, "De", "Jaquse", 13 },
+                    { 1, "xx", "Pool", 1 },
+                    { 2, "De", "Jaquse", 1 },
                     { 3, "De", "Balcony", 2 },
                     { 4, "De", "Beach View", 2 },
                     { 5, "De", "Terrace", 3 }
