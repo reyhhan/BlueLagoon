@@ -1,12 +1,12 @@
-﻿using BlueLagoon.Application.Common.Interfaces;
+﻿using BlueLagoon.Application.Services.Interface;
 using BlueLagoon.Application.Utilities;
 using BlueLagoon.Domain.Entities;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Stripe.Checkout;
 using Syncfusion.DocIO;
 using Syncfusion.DocIO.DLS;
-using Syncfusion.DocIO.Utilities;
 using Syncfusion.DocIORenderer;
 using Syncfusion.Drawing;
 using Syncfusion.Pdf;
@@ -16,12 +16,23 @@ namespace BlueLagoon.Web.Controllers
 {
     public class BookingController : Controller
     {
-        private readonly IUnitOfWork _unitOfWork;
+
+        private readonly IVillaService _villaService;
+        private readonly IVillaSuiteService _villaSuiteService;
+        private readonly IBookingService _bookingService;
+        private readonly UserManager<ApplicationUser> _userManager;
         private readonly IWebHostEnvironment _webHostEnvironment;
-        
-        public BookingController(IUnitOfWork unitOfWork, IWebHostEnvironment webHostEnvironment)
+
+        public BookingController(IVillaService villaService,
+            IVillaSuiteService villaSuiteService,
+            IBookingService bookingService,
+            UserManager<ApplicationUser> userManager,
+            IWebHostEnvironment webHostEnvironment)
         {
-            _unitOfWork = unitOfWork;
+            _villaService = villaService;
+            _villaSuiteService = villaSuiteService;
+            _bookingService = bookingService;
+            _userManager = userManager;
             _webHostEnvironment = webHostEnvironment;
         }
 
@@ -34,11 +45,13 @@ namespace BlueLagoon.Web.Controllers
 
         public IActionResult BookingDetails(int bookingId)
         {
-            Booking booking = _unitOfWork.Booking.Get(u => u.BookingId == bookingId, includeProperties: "User,Villa");
+            Booking booking = _bookingService.GetBookingById(bookingId);
+
             if(booking.VillaSuite == 0 && booking.Status == Constants.StatusApproved)
             {
                 var availableVillaNumber = AssignAvailableVillaSuiteByVilla(booking.VillaId);
-                booking.VillaSuites = _unitOfWork.VillaSuite.GetAll(u => u.VillaId == booking.VillaId && availableVillaNumber.Any(x => x == u.VillaSuitId)).ToList(); 
+                booking.VillaSuites = _villaSuiteService.GetAllVillaSuites().Where(u => u.VillaId == booking.VillaId
+                && availableVillaNumber.Any(x => x == u.VillaSuitId)).ToList(); 
             }
             return View(booking);
         }
@@ -47,8 +60,8 @@ namespace BlueLagoon.Web.Controllers
         [Authorize(Roles = Constants.Role_Admin)]
         public IActionResult CheckIn(Booking booking)
         {
-            _unitOfWork.Booking.UpdateStatus(booking.BookingId, Constants.StatusCheckedIn, booking.VillaSuite);
-            _unitOfWork.Save();
+            _bookingService.UpdateStatus(booking.BookingId, Constants.StatusCheckedIn, booking.VillaSuite);
+           
             TempData["Success"] = "This booking has been updated successfully";
             return RedirectToAction(nameof(BookingDetails), new {bookingId = booking.BookingId });
         }
@@ -58,8 +71,8 @@ namespace BlueLagoon.Web.Controllers
         [Authorize(Roles = Constants.Role_Admin)]
         public IActionResult CheckOut(Booking booking)
         {
-            _unitOfWork.Booking.UpdateStatus(booking.BookingId, Constants.StatusCompleted, booking.VillaSuite);
-            _unitOfWork.Save();
+            _bookingService.UpdateStatus(booking.BookingId, Constants.StatusCompleted, booking.VillaSuite);
+       
             TempData["Success"] = "This booking has been completed upon checkout";
             return RedirectToAction(nameof(BookingDetails), new { bookingId = booking.BookingId });
         }
@@ -68,23 +81,23 @@ namespace BlueLagoon.Web.Controllers
         [Authorize(Roles = Constants.Role_Admin)]
         public IActionResult CancelBooking(Booking booking)
         {
-            _unitOfWork.Booking.UpdateStatus(booking.BookingId, Constants.StatusCancelled, 0);
-            _unitOfWork.Save();
+            _bookingService.UpdateStatus(booking.BookingId, Constants.StatusCancelled, 0);
+           
             TempData["Success"] = "This booking has been cancelled";
             return RedirectToAction(nameof(BookingDetails), new { bookingId = booking.BookingId });
         }
+
         private List<int> AssignAvailableVillaSuiteByVilla(int villaId)
         {
             List<int> availableVillaSuites = new();
 
-            var villaSuites = _unitOfWork.VillaSuite.GetAll(u => u.VillaId == villaId);
+            var villaSuites = _villaSuiteService.GetAllVillaSuites().Where(u=>u.VillaId == villaId);
 
-            var bookedVillaSuites = _unitOfWork.Booking.GetAll(u => u.VillaId == villaId && u.Status == Constants.StatusCheckedIn)
-                .Select(u => u.VillaSuite);
+            var bookedVillas = _bookingService.GetCheckedInVillaNumber(villaId);
 
             foreach (var villaSuite in villaSuites)
             {
-                if (!bookedVillaSuites.Contains(villaSuite.VillaSuitId))
+                if (!bookedVillas.Contains(villaSuite.VillaSuitId))
                 {
                     availableVillaSuites.Add(villaSuite.VillaSuitId);
                 }
@@ -98,16 +111,17 @@ namespace BlueLagoon.Web.Controllers
             var claimsIdentity = (ClaimsIdentity)User.Identity;
             var userId = claimsIdentity.FindFirst(ClaimTypes.NameIdentifier).Value;
 
-            ApplicationUser user = _unitOfWork.ApplicationUser.Get(u=>u.Id == userId);
+            ApplicationUser user = _userManager.FindByIdAsync(userId).GetAwaiter().GetResult();
+
             Booking booking = new()
             {
                 VillaId = villaId,
-                Villa = _unitOfWork.Villa.Get(u => u.Id == villaId, includeProperties: "VillaAmenities"),
+                Villa = _villaService.GetVillaById(villaId),
                 CheckInDate = checkInDate,
                 Nights = nights,
                 CheckOutDate = checkInDate.AddDays(nights),
                 UserId = userId,
-                Email = user.Email,
+                Email = user.Email ?? string.Empty,
                 Name = user.Name,
                 Phone = user.PhoneNumber
             };
@@ -120,18 +134,12 @@ namespace BlueLagoon.Web.Controllers
         [HttpPost]
         public IActionResult FinalizeBooking(Booking booking)
         {
-            var villa = _unitOfWork.Villa.Get(u => u.Id == booking.VillaId);
+            var villa =_villaService.GetVillaById(booking.VillaId);
             booking.TotalCost = villa.Price * booking.Nights;
             booking.Status = Constants.StatusPending;
             booking.BookingDate = DateTime.Now;
-
- 
-            var villaSuites = _unitOfWork.VillaSuite.GetAll().ToList();
-            var bookedVillas = _unitOfWork.Booking.GetAll(u => u.Status == Constants.StatusApproved || u.Status == Constants.StatusCheckedIn).ToList();
-        
-            int roomsAvaialble = Constants.VillaRoomsAvailable_Count(villa.Id, villaSuites, booking.CheckInDate, booking.Nights, bookedVillas);
-
-            if(roomsAvaialble == 0)
+         
+            if(!_villaService.IsVillaAvailableByDate(villa.Id, booking.Nights, booking.CheckInDate))
             {
                 TempData["error"] = "Rooms not available";
                 return RedirectToAction(nameof(FinalizeBooking), new
@@ -141,9 +149,8 @@ namespace BlueLagoon.Web.Controllers
                     nights = booking.Nights
                 });
             }
-           
-            _unitOfWork.Booking.Add(booking);
-            _unitOfWork.Save();
+
+            _bookingService.CreateBooking(booking);
 
             var domain = Request.Scheme + "://" + Request.Host.Value + "/";
             var options = new Stripe.Checkout.SessionCreateOptions
@@ -171,8 +178,8 @@ namespace BlueLagoon.Web.Controllers
 
             var service = new Stripe.Checkout.SessionService();
             Stripe.Checkout.Session session = service.Create(options);
-            _unitOfWork.Booking.UpdateStripePaymentID(booking.BookingId, session.Id, session.PaymentIntentId);
-            _unitOfWork.Save();
+            _bookingService.UpdateStripePaymentID(booking.BookingId, session.Id, session.PaymentIntentId);
+          
 
             Response.Headers.Add("Location", session.Url);
             return new StatusCodeResult(303);
@@ -182,7 +189,7 @@ namespace BlueLagoon.Web.Controllers
         public IActionResult BookingConfirmation(int bookingId)
         {
 
-            Booking booking = _unitOfWork.Booking.Get(u => u.BookingId == bookingId, includeProperties: "User,Villa");
+            Booking booking =_bookingService.GetBookingById(bookingId);
 
             if(booking.Status == Constants.StatusPending)
             {
@@ -192,9 +199,9 @@ namespace BlueLagoon.Web.Controllers
                 if(session.PaymentStatus == "paid")
                 {
                     //confirm is successful payment
-                    _unitOfWork.Booking.UpdateStatus(bookingId, Constants.StatusApproved, 0);
-                    _unitOfWork.Booking.UpdateStripePaymentID(booking.BookingId, session.Id, session.PaymentIntentId);
-                    _unitOfWork.Save();
+                   _bookingService.UpdateStatus(bookingId, Constants.StatusApproved, 0);
+                   _bookingService.UpdateStripePaymentID(booking.BookingId, session.Id, session.PaymentIntentId);
+                   
                 }
             }
             return View(bookingId);
@@ -215,7 +222,7 @@ namespace BlueLagoon.Web.Controllers
             document.Open(filestream, FormatType.Automatic);
 
             //Updating the template
-            Booking booking = _unitOfWork.Booking.Get(u => u.BookingId == bookingId, includeProperties: "User,Villa");
+            Booking booking = _bookingService.GetBookingById(bookingId);
 
 
             TextSelection textSelection = document.Find("xx_customer_name", false, true);
@@ -318,23 +325,24 @@ namespace BlueLagoon.Web.Controllers
         public IActionResult GetAll(string status)
         {
             IEnumerable<Booking> objBookings;
-
+            string userId = "";
+            if (string.IsNullOrEmpty(status))
+            {
+                status = "";
+            }
             if (User.IsInRole(Constants.Role_Admin))
             {
-                objBookings = _unitOfWork.Booking.GetAll(includeProperties : "User,Villa");
+                
             }
             else
             {
                 var claimsIdentity = (ClaimsIdentity)User.Identity;
-                var userId = claimsIdentity.FindFirst(ClaimTypes.NameIdentifier).Value;
+                userId = claimsIdentity.FindFirst(ClaimTypes.NameIdentifier).Value;
 
-                objBookings = _unitOfWork.Booking.GetAll(u => u.UserId == userId, includeProperties: "User,Villa");
             }
+            objBookings = _bookingService.GetAllBooking(userId, status);
 
-            if (!string.IsNullOrEmpty(status))
-            {
-                objBookings = objBookings.Where(u => u.Status.ToLower().Equals(status.ToLower()));
-            }
+          
             return Json(new { data = objBookings });    
         }
 

@@ -1,4 +1,5 @@
 ﻿using BlueLagoon.Application.Common.Interfaces;
+using BlueLagoon.Application.Services.Interface;
 using BlueLagoon.Domain.Entities;
 using BlueLagoon.Infrastructure.Data;
 using BlueLagoon.Web.ViewModels;
@@ -10,14 +11,17 @@ namespace BlueLagoon.Web.Controllers
 {
     public class VillaSuiteController : Controller
     {
-        private readonly IUnitOfWork _unitOfWork;
-        public VillaSuiteController(IUnitOfWork unitOfWork)
+        private readonly IVillaSuiteService _villaSuiteService;
+        private readonly IVillaService _villaService;
+
+        public VillaSuiteController(IVillaSuiteService villaSuiteService, IVillaService villaService)
         {
-           _unitOfWork = unitOfWork;
+            _villaSuiteService = villaSuiteService;
+            _villaService = villaService;
         }
         public IActionResult Index()
         {
-            var villaSuiteList = _unitOfWork.VillaSuite.GetAll(includeProperties:"Villa").ToList();
+            var villaSuiteList = _villaSuiteService.GetAllVillaSuites();
             return View(villaSuiteList);
         }
 
@@ -25,7 +29,7 @@ namespace BlueLagoon.Web.Controllers
         {
             VillaSuiteVM villaSuiteVM = new()
             {
-                VillaList = _unitOfWork.Villa.GetAll().Select(u => new SelectListItem
+                VillaList = _villaService.GetAllVillas().Select(u => new SelectListItem
                 {
                     Text = u.Name,
                     Value = u.Id.ToString()
@@ -39,12 +43,11 @@ namespace BlueLagoon.Web.Controllers
         public IActionResult Create(VillaSuiteVM obj)
         {
             ModelState.Remove("Villa");
-            bool roomExists = _unitOfWork.VillaSuite.Any(u => u.VillaSuitId == obj.VillaSuite.VillaSuitId);
+            bool roomExists =_villaSuiteService.CheckVillaSuiteExits(obj.VillaSuite.VillaSuitId);
 
             if (ModelState.IsValid && !roomExists)
             {
-                _unitOfWork.VillaSuite.Add(obj.VillaSuite);
-                _unitOfWork.Save();
+                _villaSuiteService.CreateVillaSuite(obj.VillaSuite);
                 TempData["success"] = "The suite has been successfully created!";
                 return RedirectToAction(nameof(Index));
             }
@@ -52,7 +55,7 @@ namespace BlueLagoon.Web.Controllers
             {
                 TempData["error"] = "Suite number already exists";
             }
-            obj.VillaList = _unitOfWork.Villa.GetAll().Select(u => new SelectListItem
+            obj.VillaList = _villaService.GetAllVillas().Select(u => new SelectListItem
             {
                 Text = u.Name,
                 Value = u.Id.ToString()
@@ -65,14 +68,14 @@ namespace BlueLagoon.Web.Controllers
         {
             VillaSuiteVM obj = new()
             {
-                VillaSuite = _unitOfWork.VillaSuite.Get(u => u.VillaSuitId == villaSuiteId)
+                VillaSuite = _villaSuiteService.GetVillaSuiteById(villaSuiteId)
             };
 
             if (obj is null)
             {
                 return View(obj);    
             }
-            obj.VillaList = _unitOfWork.Villa.GetAll().Select(u => new SelectListItem
+            obj.VillaList = _villaService.GetAllVillas().Select(u => new SelectListItem
             {
                 Text = u.Name,
                 Value = u.Id.ToString()
@@ -85,13 +88,12 @@ namespace BlueLagoon.Web.Controllers
         {
             if (ModelState.IsValid)
             {
-                _unitOfWork.VillaSuite.Update(villaSuiteVM.VillaSuite);
-                _unitOfWork.Save();
+                _villaSuiteService.UpdateVillaSuite(villaSuiteVM.VillaSuite);
                 TempData["success"] = "The villa has been successfully updated!";
                 return RedirectToAction(nameof(Index));
             }          
             TempData["error"] = "The villa could not be updated!";
-            villaSuiteVM.VillaList = _unitOfWork.Villa.GetAll().Select(u => new SelectListItem
+            villaSuiteVM.VillaList = _villaService.GetAllVillas().Select(u => new SelectListItem
             {
                 Text = u.Name,
                 Value = u.Id.ToString()
@@ -104,12 +106,12 @@ namespace BlueLagoon.Web.Controllers
         {
             VillaSuiteVM villaSuiteVM = new()
             {
-                VillaList = _unitOfWork.Villa.GetAll().Select(u => new SelectListItem
+                VillaList = _villaService.GetAllVillas().Select(u => new SelectListItem
                 {
                     Text = u.Name,
                     Value = u.Id.ToString()
                 }),
-                VillaSuite = _unitOfWork.VillaSuite.Get(u => u.VillaSuitId == villaSuiteId)
+                VillaSuite = _villaSuiteService.GetVillaSuiteById(villaSuiteId)
             };
             if(villaSuiteVM.VillaSuite is null)
             {
@@ -121,12 +123,11 @@ namespace BlueLagoon.Web.Controllers
         [HttpPost]
         public IActionResult Delete(VillaSuiteVM villaSuiteVM)
         {
-            VillaSuite villaSuite = _unitOfWork.VillaSuite.Get(c => c.VillaSuitId == villaSuiteVM.VillaSuite.VillaSuitId);
+            VillaSuite villaSuite = _villaSuiteService.GetVillaSuiteById(villaSuiteVM.VillaSuite.VillaSuitId);
 
             if (villaSuite is not null)
             {
-                _unitOfWork.VillaSuite.Delete(villaSuite);
-                _unitOfWork.Save();
+                _villaSuiteService.DeleteVillaSuite(villaSuiteVM.VillaSuite.VillaSuitId);
                 TempData["success"] = "The suite has been successfully removed!";
                 return RedirectToAction(nameof(Index));
             }

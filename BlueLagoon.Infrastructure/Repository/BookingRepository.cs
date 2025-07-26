@@ -18,42 +18,6 @@ namespace BlueLagoon.Infrastructure.Repository
             _db.Bookings.Update(booking);
         }
 
-        public void UpdateStatus(int bookingId, string bookingStatus, int villaSuite = 0)
-        {
-            var booking = _db.Bookings.FirstOrDefault(m => m.BookingId == bookingId);
-            if (booking != null)
-            {
-                booking.Status = bookingStatus;
-                if (bookingStatus == Constants.StatusCheckedIn)
-                {
-                    booking.VillaSuite = villaSuite;
-                    booking.ActualCheckInDate = DateTime.Now;
-                }
-
-                if (bookingStatus == Constants.StatusCompleted)
-                {
-                    booking.ActualCheckOutDate = DateTime.Now;
-                }
-            }
-        }
-
-        public void UpdateStripePaymentID(int bookingId, string sessionId, string paymentIntentId)
-        {
-            var booking = _db.Bookings.FirstOrDefault(m => m.BookingId == bookingId);
-            if (booking != null)
-            {
-                if (!string.IsNullOrEmpty(sessionId))
-                {
-                    booking.StripeSessionId = sessionId;
-                }
-
-                if (!string.IsNullOrEmpty(sessionId))
-                {
-                    booking.StripePaymentIntentId = paymentIntentId;
-                    booking.PaymentDate = DateTime.Now;
-                    booking.IsPaymentSuccessful = true;
-                }
-            }
-        }
+        
     }
 }

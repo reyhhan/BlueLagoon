@@ -1,11 +1,4 @@
-﻿using BlueLagoon.Application.Services.Implementation;
-using BlueLagoon.Web.ViewModels;
-using Microsoft.AspNetCore.Mvc;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using BlueLagoon.Web.ViewModels;
 
 namespace BlueLagoon.Application.Services.Interface
 {
@@ -20,8 +13,5 @@ namespace BlueLagoon.Application.Services.Interface
         Task<RadialBarChartDto> GetTotalUsersRadialBarChart();
 
         Task<RadialBarChartDto> GetTotalBookingRadialBarChart();
-
-
-
     }
 }
