@@ -19,3 +19,6 @@ Note
 - The project integrates with the Stripe payment gateway and Syncfusion library
 - In order to test the Booking functionality, ensure you have a test user account on Stripe.com
 - For generating the PDF and Word document obtain a Syncfusion community license or a free trail license
+
+Acknowledgements
+- This project was built under the guidance of Bhrugen Patel via a course at Udemy.com.
